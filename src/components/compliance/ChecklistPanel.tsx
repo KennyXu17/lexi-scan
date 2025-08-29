@@ -114,9 +114,9 @@ export function ChecklistPanel({ rules, scanResults = [], onFilterChange }: Chec
           
           <div className="flex gap-2">
             <Select 
-              value={severityFilter.join(',')} 
+              value={severityFilter.length > 0 ? severityFilter.join(',') : 'all-severities'} 
               onValueChange={(value) => {
-                const newFilter = value ? value.split(',') as SeverityLevel[] : [];
+                const newFilter = value === 'all-severities' ? [] : value.split(',') as SeverityLevel[];
                 setSeverityFilter(newFilter);
                 onFilterChange?.({ severity: newFilter, status: statusFilter });
               }}
@@ -128,7 +128,7 @@ export function ChecklistPanel({ rules, scanResults = [], onFilterChange }: Chec
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Severities</SelectItem>
+                <SelectItem value="all-severities">All Severities</SelectItem>
                 <SelectItem value="critical">Critical</SelectItem>
                 <SelectItem value="high">High</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
@@ -137,9 +137,9 @@ export function ChecklistPanel({ rules, scanResults = [], onFilterChange }: Chec
             </Select>
 
             <Select 
-              value={statusFilter.join(',')} 
+              value={statusFilter.length > 0 ? statusFilter.join(',') : 'all-status'} 
               onValueChange={(value) => {
-                const newFilter = value ? value.split(',') as RuleStatus[] : [];
+                const newFilter = value === 'all-status' ? [] : value.split(',') as RuleStatus[];
                 setStatusFilter(newFilter);
                 onFilterChange?.({ severity: severityFilter, status: newFilter });
               }}
@@ -148,7 +148,7 @@ export function ChecklistPanel({ rules, scanResults = [], onFilterChange }: Chec
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all-status">All Status</SelectItem>
                 <SelectItem value="pass">Pass</SelectItem>
                 <SelectItem value="flag">Flag</SelectItem>
                 <SelectItem value="fail">Fail</SelectItem>
