@@ -26,7 +26,8 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					hover: 'hsl(var(--primary-hover))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -51,6 +52,33 @@ export default {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
+				},
+				severity: {
+					critical: {
+						DEFAULT: 'hsl(var(--severity-critical))',
+						bg: 'hsl(var(--severity-critical-bg))',
+						border: 'hsl(var(--severity-critical-border))'
+					},
+					high: {
+						DEFAULT: 'hsl(var(--severity-high))',
+						bg: 'hsl(var(--severity-high-bg))',
+						border: 'hsl(var(--severity-high-border))'
+					},
+					medium: {
+						DEFAULT: 'hsl(var(--severity-medium))',
+						bg: 'hsl(var(--severity-medium-bg))',
+						border: 'hsl(var(--severity-medium-border))'
+					},
+					low: {
+						DEFAULT: 'hsl(var(--severity-low))',
+						bg: 'hsl(var(--severity-low-bg))',
+						border: 'hsl(var(--severity-low-border))'
+					},
+					pass: {
+						DEFAULT: 'hsl(var(--severity-pass))',
+						bg: 'hsl(var(--severity-pass-bg))',
+						border: 'hsl(var(--severity-pass-border))'
+					}
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
@@ -89,6 +117,15 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
+			},
+			boxShadow: {
+				'soft': 'var(--shadow-soft)',
+				'medium': 'var(--shadow-medium)',
+				'large': 'var(--shadow-large)'
+			},
+			transitionTimingFunction: {
+				'smooth': 'var(--transition-smooth)',
+				'bounce': 'var(--transition-bounce)'
 			}
 		}
 	},

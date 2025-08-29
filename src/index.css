@@ -2,104 +2,172 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Contract Compliance Diagnose Design System */
 
 @layer base {
   :root {
+    /* Core brand colors - Professional compliance theme */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 225 15% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 225 15% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 225 15% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Professional blue */
+    --primary: 220 90% 35%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 220 90% 30%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 13% 96%;
+    --secondary-foreground: 225 15% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 13% 95%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 220 13% 93%;
+    --accent-foreground: 225 15% 15%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 220 90% 35%;
 
+    /* Severity color system */
+    --severity-critical: 0 85% 55%;
+    --severity-critical-bg: 0 85% 97%;
+    --severity-critical-border: 0 85% 90%;
+    
+    --severity-high: 25 95% 53%;
+    --severity-high-bg: 25 95% 97%;
+    --severity-high-border: 25 95% 90%;
+    
+    --severity-medium: 45 93% 47%;
+    --severity-medium-bg: 45 93% 97%;
+    --severity-medium-border: 45 93% 90%;
+    
+    --severity-low: 142 71% 45%;
+    --severity-low-bg: 142 71% 97%;
+    --severity-low-border: 142 71% 90%;
+
+    --severity-pass: 142 71% 45%;
+    --severity-pass-bg: 142 71% 97%;
+    --severity-pass-border: 142 71% 90%;
+
+    /* Professional spacing and effects */
     --radius: 0.5rem;
+    --shadow-soft: 0 1px 3px 0 hsl(220 13% 69% / 0.1), 0 1px 2px 0 hsl(220 13% 69% / 0.06);
+    --shadow-medium: 0 4px 6px -1px hsl(220 13% 69% / 0.1), 0 2px 4px -1px hsl(220 13% 69% / 0.06);
+    --shadow-large: 0 10px 15px -3px hsl(220 13% 69% / 0.1), 0 4px 6px -2px hsl(220 13% 69% / 0.05);
 
-    --sidebar-background: 0 0% 98%;
+    /* Animation tokens */
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    .dark {
+      --background: 225 15% 8%;
+      --foreground: 220 13% 95%;
 
-    --sidebar-primary: 240 5.9% 10%;
+      --card: 225 15% 10%;
+      --card-foreground: 220 13% 95%;
 
-    --sidebar-primary-foreground: 0 0% 98%;
+      --popover: 225 15% 10%;
+      --popover-foreground: 220 13% 95%;
 
-    --sidebar-accent: 240 4.8% 95.9%;
+      --primary: 220 90% 50%;
+      --primary-foreground: 0 0% 100%;
+      --primary-hover: 220 90% 45%;
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
+      --secondary: 225 15% 15%;
+      --secondary-foreground: 220 13% 95%;
 
-    --sidebar-border: 220 13% 91%;
+      --muted: 225 15% 12%;
+      --muted-foreground: 220 9% 60%;
 
-    --sidebar-ring: 217.2 91.2% 59.8%;
+      --accent: 225 15% 15%;
+      --accent-foreground: 220 13% 95%;
+
+      --destructive: 0 84% 60%;
+      --destructive-foreground: 0 0% 100%;
+
+      --border: 225 15% 20%;
+      --input: 225 15% 20%;
+      --ring: 220 90% 50%;
+
+      /* Dark mode severity colors */
+      --severity-critical: 0 85% 65%;
+      --severity-critical-bg: 0 85% 10%;
+      --severity-critical-border: 0 85% 25%;
+      
+      --severity-high: 25 95% 65%;
+      --severity-high-bg: 25 95% 8%;
+      --severity-high-border: 25 95% 25%;
+      
+      --severity-medium: 45 93% 65%;
+      --severity-medium-bg: 45 93% 8%;
+      --severity-medium-border: 45 93% 25%;
+      
+      --severity-low: 142 71% 65%;
+      --severity-low-bg: 142 71% 8%;
+      --severity-low-border: 142 71% 25%;
+
+      --severity-pass: 142 71% 65%;
+      --severity-pass-bg: 142 71% 8%;
+      --severity-pass-border: 142 71% 25%;
+    }
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+  @layer base {
+    * {
+      @apply border-border;
+    }
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    body {
+      @apply bg-background text-foreground font-sans antialiased;
+      font-feature-settings: "rlig" 1, "calt" 1;
+    }
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    ::-webkit-scrollbar-track {
+      @apply bg-muted/30;
+    }
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    ::-webkit-scrollbar-thumb {
+      @apply bg-muted-foreground/20 rounded-full;
+    }
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    ::-webkit-scrollbar-thumb:hover {
+      @apply bg-muted-foreground/30;
+    }
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    /* Line clamping utility */
+    .line-clamp-1 {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 1;
+    }
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    .line-clamp-2 {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    .line-clamp-3 {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+    }
   }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-  }
-}
