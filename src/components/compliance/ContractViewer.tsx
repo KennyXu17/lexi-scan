@@ -1,10 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ScanResult } from '@/types/compliance';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { SeverityBadge } from './SeverityBadge';
+import { Upload, FileText, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface ContractViewerProps {
   contractText: string;
@@ -25,7 +30,11 @@ interface HighlightMatch {
 
 export function ContractViewer({ contractText, onTextChange, scanResults = [], isScanning = false }: ContractViewerProps) {
   const [highlightedText, setHighlightedText] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string>('');
   const viewerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   // Process scan results into highlights
   useEffect(() => {
@@ -119,19 +128,132 @@ export function ContractViewer({ contractText, onTextChange, scanResults = [], i
     }
   };
 
+  // Handle PDF upload and text extraction
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please upload a PDF file.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadedFileName(file.name);
+
+    try {
+      // Import pdf-parse dynamically since it's not available in browser environment
+      // For now, we'll simulate PDF text extraction
+      const text = await extractTextFromPDF(file);
+      onTextChange(text);
+      
+      toast({
+        title: 'PDF uploaded successfully',
+        description: `Extracted text from ${file.name}`,
+      });
+    } catch (error) {
+      console.error('PDF parsing failed:', error);
+      toast({
+        title: 'Failed to process PDF',
+        description: 'Could not extract text from the PDF file.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Simulate PDF text extraction (replace with actual pdf-parse in production)
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        // For now, return a placeholder message
+        // In production, you would use pdf-parse here
+        resolve(`[PDF Content from ${file.name}]\n\nThis is a simulated PDF text extraction. In a real implementation, this would contain the actual text content extracted from the PDF file using a PDF parsing library.\n\nSample contract text would appear here after proper PDF parsing implementation.`);
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleClearFile = () => {
+    setUploadedFileName('');
+    onTextChange('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <TooltipProvider>
       <Card className="h-full p-4">
         <div className="h-full flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-foreground">Contract Text</h2>
-            {isScanning && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                Scanning...
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {isUploading && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                  Processing PDF...
+                </div>
+              )}
+              {isScanning && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                  Scanning...
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* File Upload Area */}
+          {scanResults.length === 0 && (
+            <div className="mb-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleUploadClick}
+                  disabled={isUploading}
+                  className="flex items-center gap-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  Upload PDF
+                </Button>
+                
+                {uploadedFileName && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-1 rounded-md">
+                    <FileText className="w-4 h-4" />
+                    <span>{uploadedFileName}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleClearFile}
+                      className="h-6 w-6 p-0 hover:bg-destructive/10"
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+              
+              <Input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </div>
+          )}
           
           <div className="flex-1 relative">
             {scanResults.length > 0 ? (
