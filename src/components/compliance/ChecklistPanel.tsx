@@ -1,22 +1,28 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { BarChart3 } from 'lucide-react'; // 确保导入 BarChart3
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ComplianceRule, ScanResult, SeverityLevel, RuleStatus } from '@/types/compliance';
 import { SeverityBadge } from './SeverityBadge';
-import { Check, X, AlertTriangle, Search, Filter } from 'lucide-react';
+import { Check, X, AlertTriangle, Search, Filter, Settings, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface ChecklistPanelProps {
   rules: ComplianceRule[];
   scanResults?: ScanResult[];
+  overallScore?: number; // <-- 新增这一行
   onFilterChange?: (filters: { severity: SeverityLevel[]; status: RuleStatus[] }) => void;
+  onEditChecklist?: () => void; // 新增
+  onExportReport?: () => void; // 新增这一行
 }
 
-export function ChecklistPanel({ rules, scanResults = [], onFilterChange }: ChecklistPanelProps) {
+export function ChecklistPanel({ rules, scanResults = [], overallScore = 0, onFilterChange, onEditChecklist, onExportReport }: ChecklistPanelProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [severityFilter, setSeverityFilter] = useState<SeverityLevel[]>([]);
   const [statusFilter, setStatusFilter] = useState<RuleStatus[]>([]);
@@ -92,70 +98,128 @@ export function ChecklistPanel({ rules, scanResults = [], onFilterChange }: Chec
   return (
     <Card className="h-full p-4">
       <div className="h-full flex flex-col">
-        {/* Header */}
+        {/* Header：左标题；右侧 统计 + 搜索 */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-foreground">Compliance Checklist</h2>
-          <Badge variant="outline" className="text-xs">
-            {scanResults.length > 0 ? `${scanResults.length} scanned` : `${rules.length} rules`}
-          </Badge>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="space-y-3 mb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search rules..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          
-          <div className="flex gap-2">
-            <Select 
-              value={severityFilter.length > 0 ? severityFilter.join(',') : 'all-severities'} 
-              onValueChange={(value) => {
-                const newFilter = value === 'all-severities' ? [] : value.split(',') as SeverityLevel[];
-                setSeverityFilter(newFilter);
-                onFilterChange?.({ severity: newFilter, status: statusFilter });
-              }}
-            >
-              <SelectTrigger className="flex-1">
-                <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4" />
-                  <SelectValue placeholder="Severity" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all-severities">All Severities</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select 
-              value={statusFilter.length > 0 ? statusFilter.join(',') : 'all-status'} 
-              onValueChange={(value) => {
-                const newFilter = value === 'all-status' ? [] : value.split(',') as RuleStatus[];
-                setStatusFilter(newFilter);
-                onFilterChange?.({ severity: severityFilter, status: newFilter });
-              }}
-            >
-              <SelectTrigger className="flex-1">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all-status">All Status</SelectItem>
-                <SelectItem value="pass">Pass</SelectItem>
-                <SelectItem value="flag">Flag</SelectItem>
-                <SelectItem value="fail">Fail</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="text-xs">
+              {scanResults.length > 0 ? `${scanResults.length} scanned` : `${rules.length} rules`}
+            </Badge>
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search rules..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
           </div>
         </div>
+
+
+            {/* Actions & Filters Row */}
+            <div className="flex items-center gap-2 mb-4">
+              {/* Edit Checklist Button */}
+              {onEditChecklist && (
+                <Button
+                  variant="outline"
+                  onClick={onEditChecklist}
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Edit Checklist
+                </Button>
+              )}
+
+              {/* Filters Popover */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="relative">
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filters
+                    {(severityFilter.length > 0 || statusFilter.length > 0) && (
+                      <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                      </span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64" align="start">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Severity</Label>
+                      <Select
+                        value={severityFilter.length > 0 ? severityFilter.join(',') : 'all-severities'}
+                        onValueChange={(value) => {
+                          const newFilter = value === 'all-severities' ? [] : (value.split(',') as SeverityLevel[]);
+                          setSeverityFilter(newFilter);
+                          onFilterChange?.({ severity: newFilter, status: statusFilter });
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Filter by severity..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all-severities">All Severities</SelectItem>
+                          <SelectItem value="critical">Critical</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="low">Low</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Status</Label>
+                      <Select
+                        value={statusFilter.length > 0 ? statusFilter.join(',') : 'all-status'}
+                        onValueChange={(value) => {
+                          const newFilter = value === 'all-status' ? [] : (value.split(',') as RuleStatus[]);
+                          setStatusFilter(newFilter);
+                          onFilterChange?.({ severity: severityFilter, status: newFilter });
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Filter by status..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all-status">All Status</SelectItem>
+                          <SelectItem value="pass">Pass</SelectItem>
+                          <SelectItem value="flag">Flag</SelectItem>
+                          <SelectItem value="fail">Fail</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Spacer to push export button to the right */}
+              <div className="flex-grow" />
+
+              {/* Score Display */}
+              {overallScore > 0 && (
+                <Card className="px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium">Score: {overallScore}%</span>
+                  </div>
+                </Card>
+              )}
+
+              {/* Export Report Button */}
+              {onExportReport && (
+                <Button
+                  variant="outline"
+                  onClick={onExportReport}
+                  disabled={scanResults.length === 0}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Export Report
+                </Button>
+              )}
+            </div>
+
 
         {/* Rules List */}
         <div className="flex-1 overflow-auto space-y-2">
@@ -169,15 +233,13 @@ export function ChecklistPanel({ rules, scanResults = [], onFilterChange }: Chec
             return (
               <Collapsible key={category} open={isExpanded} onOpenChange={() => toggleCategory(category)}>
                 <CollapsibleTrigger asChild>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="w-full justify-between p-2 h-auto hover:bg-accent/50"
                   >
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm">{category}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {stats.total}
-                      </Badge>
+                      <Badge variant="outline" className="text-xs">{stats.total}</Badge>
                     </div>
                     <div className="flex items-center gap-1">
                       {stats.pass > 0 && <Badge className="text-xs bg-severity-pass-bg text-severity-pass">{stats.pass}</Badge>}
@@ -186,7 +248,7 @@ export function ChecklistPanel({ rules, scanResults = [], onFilterChange }: Chec
                     </div>
                   </Button>
                 </CollapsibleTrigger>
-                
+
                 <CollapsibleContent>
                   <div className="pl-4 space-y-2">
                     {filteredCategoryRules.map((rule) => {
@@ -208,12 +270,10 @@ export function ChecklistPanel({ rules, scanResults = [], onFilterChange }: Chec
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-2">
-                                <h4 className="text-sm font-medium text-foreground truncate">
-                                  {rule.title}
-                                </h4>
+                                <h4 className="text-sm font-medium text-foreground truncate">{rule.title}</h4>
                                 <SeverityBadge severity={rule.severity} />
                               </div>
-                              
+
                               <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
                                 {rule.explanation}
                               </p>
@@ -223,7 +283,7 @@ export function ChecklistPanel({ rules, scanResults = [], onFilterChange }: Chec
                                   <p className="text-xs text-foreground">
                                     <strong>Analysis:</strong> {result.rationale}
                                   </p>
-                                  
+
                                   {result.suggestions.length > 0 && (
                                     <div className="text-xs text-muted-foreground">
                                       <strong>Suggestions:</strong>

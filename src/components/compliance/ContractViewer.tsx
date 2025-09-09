@@ -8,7 +8,7 @@ import { ScanResult } from '@/types/compliance';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { SeverityBadge } from './SeverityBadge';
-import { Upload, FileText, X } from 'lucide-react';
+import { Upload, FileText, X , Trash2, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ContractViewerProps {
@@ -16,6 +16,13 @@ interface ContractViewerProps {
   onTextChange: (text: string) => void;
   scanResults?: ScanResult[];
   isScanning?: boolean;
+  loadSampleContract: () => void;
+  handlePdfUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleClear: () => void;
+  fileInputRef: React.RefObject<HTMLInputElement>;
+  searchTerm: string; // 新增
+  setSearchTerm: (v: string) => void; // 新增
+  handleScan: () => void; // 新增
 }
 
 interface HighlightMatch {
@@ -28,12 +35,23 @@ interface HighlightMatch {
   status: string;
 }
 
-export function ContractViewer({ contractText, onTextChange, scanResults = [], isScanning = false }: ContractViewerProps) {
+export function ContractViewer({
+  contractText,
+  onTextChange,
+  scanResults = [],
+  isScanning = false,
+  loadSampleContract,
+  handlePdfUpload,
+  handleClear,
+  fileInputRef,
+  searchTerm,      // ← 加上
+  setSearchTerm,   // ← 加上
+  handleScan = () => {},  // ★ 推荐加默认值
+}: ContractViewerProps) {
   const [highlightedText, setHighlightedText] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string>('');
   const viewerRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Process scan results into highlights
@@ -129,172 +147,180 @@ export function ContractViewer({ contractText, onTextChange, scanResults = [], i
   };
 
   // Handle PDF upload and text extraction
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  // const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = event.target.files?.[0];
+  //   if (!file) return;
 
-    if (file.type !== 'application/pdf') {
-      toast({
-        title: 'Invalid file type',
-        description: 'Please upload a PDF file.',
-        variant: 'destructive',
-      });
-      return;
-    }
+  //   if (file.type !== 'application/pdf') {
+  //     toast({
+  //       title: 'Invalid file type',
+  //       description: 'Please upload a PDF file.',
+  //       variant: 'destructive',
+  //     });
+  //     return;
+  //   }
 
-    setIsUploading(true);
-    setUploadedFileName(file.name);
+  //   setIsUploading(true);
+  //   setUploadedFileName(file.name);
 
-    try {
-      // Import pdf-parse dynamically since it's not available in browser environment
-      // For now, we'll simulate PDF text extraction
-      const text = await extractTextFromPDF(file);
-      onTextChange(text);
+  //   try {
+  //     // Import pdf-parse dynamically since it's not available in browser environment
+  //     // For now, we'll simulate PDF text extraction
+  //     const text = await extractTextFromPDF(file);
+  //     onTextChange(text);
       
-      toast({
-        title: 'PDF uploaded successfully',
-        description: `Extracted text from ${file.name}`,
-      });
-    } catch (error) {
-      console.error('PDF parsing failed:', error);
-      toast({
-        title: 'Failed to process PDF',
-        description: 'Could not extract text from the PDF file.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsUploading(false);
-    }
-  };
+  //     toast({
+  //       title: 'PDF uploaded successfully',
+  //       description: `Extracted text from ${file.name}`,
+  //     });
+  //   } catch (error) {
+  //     console.error('PDF parsing failed:', error);
+  //     toast({
+  //       title: 'Failed to process PDF',
+  //       description: 'Could not extract text from the PDF file.',
+  //       variant: 'destructive',
+  //     });
+  //   } finally {
+  //     setIsUploading(false);
+  //   }
+  // };
 
   // Simulate PDF text extraction (replace with actual pdf-parse in production)
-  const extractTextFromPDF = async (file: File): Promise<string> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        // For now, return a placeholder message
-        // In production, you would use pdf-parse here
-        resolve(`[PDF Content from ${file.name}]\n\nThis is a simulated PDF text extraction. In a real implementation, this would contain the actual text content extracted from the PDF file using a PDF parsing library.\n\nSample contract text would appear here after proper PDF parsing implementation.`);
-      };
-      reader.readAsArrayBuffer(file);
-    });
-  };
+  // const extractTextFromPDF = async (file: File): Promise<string> => {
+  //   return new Promise((resolve) => {
+  //     const reader = new FileReader();
+  //     reader.onload = () => {
+  //       // For now, return a placeholder message
+  //       // In production, you would use pdf-parse here
+  //       resolve(`[PDF Content from ${file.name}]\n\nThis is a simulated PDF text extraction. In a real implementation, this would contain the actual text content extracted from the PDF file using a PDF parsing library.\n\nSample contract text would appear here after proper PDF parsing implementation.`);
+  //     };
+  //     reader.readAsArrayBuffer(file);
+  //   });
+  // };
 
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
+  // const handleUploadClick = () => {
+  //   fileInputRef.current?.click();
+  // };
 
-  const handleClearFile = () => {
-    setUploadedFileName('');
-    onTextChange('');
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
+  // const handleClearFile = () => {
+  //   setUploadedFileName('');
+  //   onTextChange('');
+  //   if (fileInputRef.current) {
+  //     fileInputRef.current.value = '';
+  //   }
+  // };
 
-  return (
-    <TooltipProvider>
-      <Card className="h-full p-4">
-        <div className="h-full flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">Contract Text</h2>
-            <div className="flex items-center gap-2">
-              {isUploading && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                  Processing PDF...
-                </div>
-              )}
-              {isScanning && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                  Scanning...
-                </div>
-              )}
+ return (
+  <TooltipProvider>
+    <Card className="h-full p-4">
+      {/* 这个容器要包住整块内容，直到图例结束再关闭 */}
+      <div className="h-full flex flex-col">
+
+        {/* 顶部标题 + 搜索 */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-foreground">Contract Text</h2>
+          <div className="w-64">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search contract text..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
           </div>
+        </div>
 
-          {/* File Upload Area */}
-          {scanResults.length === 0 && (
-            <div className="mb-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleUploadClick}
-                  disabled={isUploading}
-                  className="flex items-center gap-2"
-                >
-                  <Upload className="w-4 h-4" />
-                  Upload PDF
-                </Button>
-                
-                {uploadedFileName && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-1 rounded-md">
-                    <FileText className="w-4 h-4" />
-                    <span>{uploadedFileName}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleClearFile}
-                      className="h-6 w-6 p-0 hover:bg-destructive/10"
-                    >
-                      <X className="w-3 h-3" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-              
-              <Input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
+        {/* 状态 + 按钮区 */}
+        <div className="flex items-center gap-2 mb-4">
+          {isUploading && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+              Processing PDF...
             </div>
           )}
-          
-          <div className="flex-1 relative">
-            {scanResults.length > 0 ? (
-              <div 
-                ref={viewerRef}
-                className="h-full overflow-auto p-4 bg-muted/30 rounded-lg border text-sm leading-relaxed font-mono"
-                onMouseOver={handleMouseOver}
-                dangerouslySetInnerHTML={{ __html: highlightedText }}
-              />
-            ) : (
-              <Textarea
-                value={contractText}
-                onChange={(e) => onTextChange(e.target.value)}
-                placeholder="Paste your contract text here or upload a document..."
-                className="h-full resize-none text-sm font-mono leading-relaxed"
-              />
-            )}
-          </div>
-          
-          {scanResults.length > 0 && (
-            <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-severity-critical rounded-full"></div>
-                Critical
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-severity-high rounded-full"></div>
-                High
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-severity-medium rounded-full"></div>
-                Medium
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-severity-low rounded-full"></div>
-                Low
-              </div>
+          {isScanning && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+              Scanning...
             </div>
+          )}
+
+          <div className="flex items-center gap-2 mb-4 w-full">
+            <Button variant="outline" asChild type="button">
+              <label style={{ cursor: 'pointer', marginBottom: 0 }}>
+                <Upload className="w-4 h-4 mr-2" />
+                Upload PDF
+                <input
+                  id="pdf-input"
+                  type="file"
+                  accept="application/pdf"
+                  style={{ display: 'none' }}
+                  onChange={handlePdfUpload}
+                  ref={fileInputRef}
+                />
+              </label>
+            </Button>
+            <Button variant="outline" onClick={handleClear} type="button">
+              <Trash2 className="w-4 h-4 mr-2" />
+              Clear
+            </Button>
+            <div className="flex-1" />
+            <Button
+              onClick={handleScan}
+              disabled={isScanning}
+              className="flex items-center gap-2"
+              type="button"
+            >
+              Scan Contract
+            </Button>
+          </div>
+        </div>
+
+        {/* 主内容区 */}
+        <div className="flex-1 relative">
+          {scanResults.length > 0 ? (
+            <div
+              ref={viewerRef}
+              className="h-full overflow-auto p-4 bg-muted/30 rounded-lg border text-sm leading-relaxed font-mono"
+              onMouseOver={handleMouseOver}
+              dangerouslySetInnerHTML={{ __html: highlightedText }}
+            />
+          ) : (
+            <Textarea
+              value={contractText}
+              onChange={(e) => onTextChange(e.target.value)}
+              placeholder="Paste your contract text here or upload a document..."
+              className="h-full resize-none text-sm font-mono leading-relaxed"
+            />
           )}
         </div>
-      </Card>
-    </TooltipProvider>
-  );
+
+        {/* 图例，仅在有结果时显示 */}
+        {scanResults.length > 0 && (
+          <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-severity-critical rounded-full" />
+              Critical
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-severity-high rounded-full" />
+              High
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-severity-medium rounded-full" />
+              Medium
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-severity-low rounded-full" />
+              Low
+            </div>
+          </div>
+        )}
+
+      </div>{/* ← 现在在这里才关闭外层 flex-col */}
+    </Card>
+  </TooltipProvider>
+);
 }

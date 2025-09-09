@@ -1,14 +1,5 @@
-// import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Menubar,
-  MenubarContent,
-  MenubarItem,
-  MenubarMenu,
-  MenubarSeparator,
-  MenubarShortcut,
-  MenubarTrigger,
-} from "@/components/ui/menubar";
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { ComplianceRule, ScanResult } from '@/types/compliance';
+import { ComplianceRule, ContractAnalysis, ScanResult } from '@/types/compliance';
 import { ContractViewer } from '@/components/compliance/ContractViewer';
 import { ChecklistPanel } from '@/components/compliance/ChecklistPanel';
 import { ChecklistEditor } from '@/components/compliance/ChecklistEditor';
@@ -34,10 +25,6 @@ import {
   BarChart3,
   Upload
 } from 'lucide-react';
-import React, { useRef, useState, useEffect } from 'react';
-
-// 引入后端API
-import { scanContract as scanContractApi, fetchRules as fetchRulesApi, saveRules as saveRulesApi } from '@/services/api';
 
 const Index = () => {
   const [contractText, setContractText] = useState<string>(sampleContractText);
@@ -49,88 +36,27 @@ const Index = () => {
   const [useMockBackend, setUseMockBackend] = useState(true);
   const [overallScore, setOverallScore] = useState<number>(0);
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-      if (!res.ok) throw new Error('Failed to upload PDF');
-      const data = await res.json();
-      setContractText(data.text || '');
-      toast({
-        title: 'PDF uploaded',
-        description: 'PDF text extracted and loaded.',
-      });
-    } catch (err: any) {
-      toast({
-        title: 'Upload failed',
-        description: err.message,
-        variant: 'destructive',
-      });
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  // Load rules from backend or localStorage on mount
+  // Load rules from localStorage on mount
   useEffect(() => {
-    if (useMockBackend) {
-      const savedRules = localStorage.getItem('compliance-rules');
-      if (savedRules) {
-        try {
-          setRules(JSON.parse(savedRules));
-        } catch (error) {
-          console.error('Failed to load saved rules:', error);
-        }
+    const savedRules = localStorage.getItem('compliance-rules');
+    if (savedRules) {
+      try {
+        setRules(JSON.parse(savedRules));
+      } catch (error) {
+        console.error('Failed to load saved rules:', error);
       }
-    } else {
-      fetchRulesApi()
-        .then(setRules)
-        .catch((error) => {
-          toast({
-            title: 'Failed to load rules',
-            description: error.message,
-            variant: 'destructive',
-          });
-        });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [useMockBackend]);
+  }, []);
 
-  // Save rules to backend or localStorage
+  // Save rules to localStorage
   const saveRules = (newRules: ComplianceRule[]) => {
     setRules(newRules);
-    if (useMockBackend) {
-      localStorage.setItem('compliance-rules', JSON.stringify(newRules));
-      toast({
-        title: 'Rules updated',
-        description: 'Checklist rules have been saved successfully.',
-      });
-    } else {
-      saveRulesApi(newRules)
-        .then(() => {
-          toast({
-            title: 'Rules updated',
-            description: 'Checklist rules have been saved to backend.',
-          });
-        })
-        .catch((error) => {
-          toast({
-            title: 'Failed to save rules',
-            description: error.message,
-            variant: 'destructive',
-          });
-        });
-    }
+    localStorage.setItem('compliance-rules', JSON.stringify(newRules));
+    toast({
+      title: 'Rules updated',
+      description: 'Checklist rules have been saved successfully.',
+    });
   };
 
   // Run compliance scan
@@ -150,26 +76,24 @@ const Index = () => {
         const analysis = await mockScanner.scanContract(contractText, rules);
         setScanResults(analysis.results);
         setOverallScore(analysis.overallScore);
-
+        
         toast({
           title: 'Scan completed',
           description: `Analysis complete. Overall compliance score: ${analysis.overallScore}%`,
         });
       } else {
-        const analysis = await scanContractApi(contractText, rules);
-        setScanResults(analysis.results);
-        setOverallScore(analysis.overallScore);
-
+        // Placeholder for real backend API call
         toast({
-          title: 'Scan completed (backend)',
-          description: `Analysis complete. Overall compliance score: ${analysis.overallScore}%`,
+          title: 'Backend not configured',
+          description: 'Real backend integration is not yet implemented.',
+          variant: 'destructive',
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Scan failed:', error);
       toast({
         title: 'Scan failed',
-        description: error.message || 'An error occurred during the compliance scan.',
+        description: 'An error occurred during the compliance scan.',
         variant: 'destructive',
       });
     } finally {
@@ -251,7 +175,6 @@ ${result.suggestions.length > 0 ? `- Suggestions:\n${result.suggestions.map(s =>
     });
   };
 
-// ...existing code...
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -260,8 +183,7 @@ ${result.suggestions.length > 0 ? `- Suggestions:\n${result.suggestions.map(s =>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center w-10 h-10 bg-primary text-primary-foreground rounded-lg">
-                {/* <FileText className="w-5 h-5" /> */}
-                <img src="/favicon.ico" alt="Lexi-Scan Logo" className="w-15 h-15" />
+                <FileText className="w-5 h-5" />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-foreground">Contract Compliance Diagnose</h1>
@@ -278,62 +200,56 @@ ${result.suggestions.length > 0 ? `- Suggestions:\n${result.suggestions.map(s =>
                   onCheckedChange={setUseMockBackend}
                 />
               </div>
-              {/* {overallScore > 0 && (
+              {overallScore > 0 && (
                 <Card className="px-3 py-2">
                   <div className="flex items-center gap-2">
                     <BarChart3 className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium">Score: {overallScore}%</span>
                   </div>
                 </Card>
-              )} */}
+              )}
+            </div>
+          </div>
+
+          {/* Action Bar */}
+          <div className="flex items-center gap-3 mt-4">
+            <Button onClick={handleScan} disabled={isScanning} className="flex items-center gap-2">
+              <Play className="w-4 h-4" />
+              {isScanning ? 'Scanning...' : 'Scan Contract'}
+            </Button>
+
+            <Button variant="outline" onClick={() => setShowEditor(true)}>
+              <Settings className="w-4 h-4 mr-2" />
+              Edit Checklist
+            </Button>
+
+            <Button variant="outline" onClick={handleExportReport} disabled={scanResults.length === 0}>
+              <Download className="w-4 h-4 mr-2" />
+              Export Report
+            </Button>
+
+            <Button variant="outline" onClick={loadSampleContract}>
+              <Upload className="w-4 h-4 mr-2" />
+              Load Sample
+            </Button>
+
+            <Button variant="outline" onClick={handleClear}>
+              <Trash2 className="w-4 h-4 mr-2" />
+              Clear
+            </Button>
+
+            {/* Search */}
+            <div className="flex-1 max-w-md">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search contract text..."
+                  className="pl-10"
+                />
+              </div>
             </div>
           </div>
         </div>
-
-        <Menubar className="rounded-none border-t border-none px-2 lg:px-4">
-          <MenubarMenu>
-            <MenubarTrigger>File</MenubarTrigger>
-            <MenubarContent>
-              <MenubarItem onClick={handleClear}>
-                New Scan <MenubarShortcut>Ctrl+N</MenubarShortcut>
-              </MenubarItem>
-              <MenubarItem onClick={() => fileInputRef.current?.click()}>
-                Upload PDF... <MenubarShortcut>Ctrl+O</MenubarShortcut>
-              </MenubarItem>
-              <MenubarItem onClick={loadSampleContract}>
-                Load Sample Contract
-              </MenubarItem>
-              <MenubarSeparator />
-              <MenubarItem onClick={handleExportReport} disabled={scanResults.length === 0}>
-                Export Report... <MenubarShortcut>Ctrl+E</MenubarShortcut>
-              </MenubarItem>
-            </MenubarContent>
-          </MenubarMenu>
-          <MenubarMenu>
-            <MenubarTrigger>Edit</MenubarTrigger>
-            <MenubarContent>
-              <MenubarItem onClick={() => setShowEditor(true)}>
-                Edit Checklist...
-              </MenubarItem>
-            </MenubarContent>
-          </MenubarMenu>
-          <MenubarMenu>
-            <MenubarTrigger>View</MenubarTrigger>
-            <MenubarContent>
-               <MenubarItem>Toggle Fullscreen</MenubarItem>
-               <MenubarSeparator />
-               <MenubarItem>Light Theme</MenubarItem>
-               <MenubarItem>Dark Theme</MenubarItem>
-            </MenubarContent>
-          </MenubarMenu>
-           <MenubarMenu>
-            <MenubarTrigger>Help</MenubarTrigger>
-            <MenubarContent>
-               <MenubarItem>About Lexi-Scan</MenubarItem>
-               <MenubarItem>View on GitHub</MenubarItem>
-            </MenubarContent>
-          </MenubarMenu>
-        </Menubar>
       </header>
 
       {/* Main Content */}
@@ -345,22 +261,12 @@ ${result.suggestions.length > 0 ? `- Suggestions:\n${result.suggestions.map(s =>
             onTextChange={setContractText}
             scanResults={scanResults}
             isScanning={isScanning}
-            loadSampleContract={loadSampleContract}
-            handlePdfUpload={handlePdfUpload}
-            handleClear={handleClear}
-            fileInputRef={fileInputRef}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            handleScan={handleScan}
           />
 
           {/* Right Panel - Checklist */}
           <ChecklistPanel
             rules={rules}
             scanResults={scanResults}
-            overallScore={overallScore} // <-- 新增这一行
-            onEditChecklist={() => setShowEditor(true)}
-            onExportReport={handleExportReport}
           />
         </div>
       </div>
@@ -374,7 +280,6 @@ ${result.suggestions.length > 0 ? `- Suggestions:\n${result.suggestions.map(s =>
       />
     </div>
   );
-// ...existing code...
 };
 
 export default Index;

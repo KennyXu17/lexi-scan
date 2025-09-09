@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ComplianceRule, SeverityLevel, RuleType } from '@/types/compliance';
+import { complianceTemplates } from '@/data/complianceTemplates'; // Add this import
 import { SeverityBadge } from './SeverityBadge';
 import { Plus, Trash2, Edit, Save, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -28,12 +29,31 @@ export function ChecklistEditor({ open, onClose, rules, onSave }: ChecklistEdito
   const [editingRules, setEditingRules] = useState<EditingRule[]>([]);
   const [editingRule, setEditingRule] = useState<EditingRule | null>(null);
 
-  // Initialize editing rules when dialog opens
-  useState(() => {
+  // Use useEffect to sync with props
+  useEffect(() => {
     if (open) {
       setEditingRules(rules.map(rule => ({ ...rule })));
     }
-  });
+  }, [open, rules]);
+
+  const handleLoadTemplate = (templateName: string) => {
+    const template = complianceTemplates.find(t => t.name === templateName);
+    if (!template) return;
+
+    // Confirm with the user before overwriting their changes
+    const confirmed = window.confirm(
+      'Loading a template will replace your current checklist. Are you sure you want to continue?'
+    );
+
+    if (confirmed) {
+      // Reset IDs to ensure they are unique for this new instance
+      const newRules = template.rules.map(rule => ({
+        ...rule,
+        id: `rule-${Date.now()}-${Math.random()}`
+      }));
+      setEditingRules(newRules);
+    }
+  };
 
   const handleSave = () => {
     const validRules = editingRules
@@ -113,10 +133,25 @@ export function ChecklistEditor({ open, onClose, rules, onSave }: ChecklistEdito
         <div className="flex-1 overflow-hidden flex flex-col">
           {/* Action Bar */}
           <div className="flex items-center justify-between mb-4">
-            <Button onClick={handleAddRule} className="flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              Add Rule
-            </Button>
+            <div className="flex items-center gap-2">
+              <Select onValueChange={handleLoadTemplate}>
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue placeholder="Load Template..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {complianceTemplates.map(template => (
+                    <SelectItem key={template.name} value={template.name}>
+                      {template.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button onClick={handleAddRule} className="flex items-center gap-2">
+                <Plus className="w-4 h-4" />
+                Add Rule
+              </Button>
+            </div>
             
             <div className="flex gap-2">
               <Button variant="outline" onClick={onClose}>Cancel</Button>
