@@ -1,22 +1,128 @@
-# Welcome to your Lovable project
+# Lexi-Scan: Contract Compliance Analysis Tool
 
-## Project info
+A modern web application for analyzing legal contracts against compliance checklists with real-time scanning and customizable rules.
 
-**URL**: https://lovable.dev/projects/67bcb3d8-7c96-4af5-bfdd-d961c7a3432c
+## 🚀 Live Demo
 
-## How can I edit this code?
+- **Frontend**: [https://kennyxu17.github.io/lexi-scan/](https://kennyxu17.github.io/lexi-scan/)
+- **Backend API**: Deploy to Render or your preferred hosting service
 
-There are several ways of editing your application.
+## 📋 Features
 
-**Use Lovable**
+- **Contract Analysis**: Upload and analyze PDF contracts
+- **Compliance Checklist**: Customizable rules with severity levels
+- **Real-time Scanning**: Instant feedback on compliance issues
+- **Template System**: Pre-built templates for different contract types
+- **Export Reports**: Generate compliance reports
+- **Modern UI**: Built with React, TypeScript, and Tailwind CSS
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/67bcb3d8-7c96-4af5-bfdd-d961c7a3432c) and start prompting.
+## 🛠️ Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend**: React, TypeScript, Vite, Tailwind CSS, shadcn/ui
+- **Backend**: Python, FastAPI, Docker
+- **Deployment**: GitHub Pages (Frontend), Render (Backend)
 
-**Use your preferred IDE**
+## 🚀 Deployment
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Frontend (GitHub Pages)
+
+1. **Configure Repository Settings**:
+   - Go to your GitHub repository settings
+   - Navigate to "Pages" section
+   - Set source to "GitHub Actions"
+
+2. **Update Environment Variables**:
+   - Edit `.env.production` with your backend URL:
+   ```
+   VITE_API_URL=https://your-backend-app.onrender.com
+   ```
+
+3. **Deploy**:
+   - Push to main branch
+   - GitHub Actions will automatically build and deploy
+   - Frontend will be available at: `https://kennyxu17.github.io/lexi-scan/`
+
+### Backend (Render)
+
+1. **Create Render Account** and connect your GitHub repository
+
+2. **Deploy Backend**:
+   - Create new Web Service on Render
+   - Connect to your repository
+   - Set build command: `docker build -t backend ./backend`
+   - Set start command: `docker run -p 10000:8000 backend`
+   - Add environment variables as needed
+
+3. **Update CORS Settings**:
+   - Ensure your backend allows requests from your GitHub Pages domain
+   - Update CORS origins in your FastAPI application
+
+## 🔧 Local Development
+
+### Prerequisites
+- Node.js 18+ or Bun
+- Python 3.9+
+- Docker (optional)
+
+### Frontend Setup
+```bash
+# Install dependencies
+bun install
+
+# Start development server
+bun run dev
+```
+
+### Backend Setup
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python main.py
+```
+
+### Docker Setup
+```bash
+docker-compose up --build
+```
+
+## 📁 Project Structure
+
+```
+lexi-scan/
+├── src/
+│   ├── components/        # React components
+│   ├── pages/            # Application pages
+│   ├── services/         # API services
+│   ├── types/           # TypeScript definitions
+│   └── data/            # Static data and templates
+├── backend/             # Python FastAPI backend
+├── .github/workflows/   # GitHub Actions
+└── public/             # Static assets
+```
+
+## 🔐 Environment Variables
+
+### Frontend (.env.production)
+```
+VITE_API_URL=https://your-backend-url.com
+```
+
+### Backend
+Configure as needed for your hosting service (database URLs, API keys, etc.)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
