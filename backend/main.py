@@ -14,6 +14,15 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = FastAPI()
 
+# Health endpoints to satisfy platform health checks
+@app.get("/")
+def root():
+    return {"status": "ok", "service": "lexi-scan"}
+
+@app.get("/healthz")
+def healthz():
+    return {"status": "ok"}
+
 # 允许前端跨域访问
 app.add_middleware(
     CORSMiddleware,
