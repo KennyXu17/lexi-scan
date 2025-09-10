@@ -251,7 +251,6 @@ ${result.suggestions.length > 0 ? `- Suggestions:\n${result.suggestions.map(s =>
     });
   };
 
-// ...existing code...
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -261,7 +260,7 @@ ${result.suggestions.length > 0 ? `- Suggestions:\n${result.suggestions.map(s =>
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center w-10 h-10 bg-primary text-primary-foreground rounded-lg">
                 {/* <FileText className="w-5 h-5" /> */}
-                <img src="/favicon.ico" alt="Lexi-Scan Logo" className="w-15 h-15" />
+                <img src={`${import.meta.env.BASE_URL}favicon.ico`} alt="Lexi-Scan Logo" className="w-6 h-6 object-contain" />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-foreground">Contract Compliance Diagnose</h1>
@@ -374,7 +373,6 @@ ${result.suggestions.length > 0 ? `- Suggestions:\n${result.suggestions.map(s =>
       />
     </div>
   );
-// ...existing code...
 };
 
 export default Index;
